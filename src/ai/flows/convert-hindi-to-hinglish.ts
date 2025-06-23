@@ -102,18 +102,22 @@ const convertHindiToHinglishFlow = ai.defineFlow(
       chunks.push(chunkBlocks.join('\n\n'));
     }
 
-    // Process each chunk in parallel by calling the conversion prompt.
-    const chunkPromises = chunks.map(chunk =>
-      convertToHinglishPrompt({ srtContent: chunk })
-    );
-
-    const processedChunksResults = await Promise.all(chunkPromises);
+    // Process each chunk sequentially to avoid overwhelming the API with parallel requests.
+    const processedChunks: string[] = [];
+    for (const chunk of chunks) {
+      try {
+        const result = await convertToHinglishPrompt({ srtContent: chunk });
+        processedChunks.push(result.output?.hinglishSrtContent || '');
+      } catch (error) {
+        console.error("A chunk failed to process, skipping it.", error);
+        // If a chunk fails, we'll log the error and continue with the next ones.
+        // This makes the process more resilient.
+      }
+    }
 
     // Stitch the processed Hinglish chunks back together, preserving the
     // double newline separation between SRT blocks.
-    const hinglishSrtContent = processedChunksResults
-      .map(result => result.output?.hinglishSrtContent || '')
-      .join('\n\n');
+    const hinglishSrtContent = processedChunks.join('\n\n');
 
     return { hinglishSrtContent };
   }
