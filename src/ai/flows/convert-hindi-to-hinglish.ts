@@ -82,43 +82,20 @@ const convertHindiToHinglishFlow = ai.defineFlow(
     inputSchema: ConvertHindiToHinglishInputSchema,
     outputSchema: ConvertHindiToHinglishOutputSchema,
   },
-  async ({ srtContent }) => {
-    // Split the SRT content into individual subtitle blocks.
-    // SRT blocks are typically separated by one or more empty lines.
-    const srtBlocks = srtContent.trim().split(/\n\s*\n/);
-
-    // If there's no content, return an empty string.
-    if (srtBlocks.length === 0 || (srtBlocks.length === 1 && !srtBlocks[0])) {
+  async (input) => {
+    // This flow now processes a single chunk of text. The client is responsible
+    // for splitting the full SRT file and sending chunks.
+    if (!input.srtContent?.trim()) {
       return { hinglishSrtContent: '' };
     }
-
-    // Group blocks into chunks to avoid hitting model context limits
-    // and to allow for parallel processing. A chunk size of 50 is a
-    // safe and efficient number for most models.
-    const CHUNK_SIZE = 50;
-    const chunks: string[] = [];
-    for (let i = 0; i < srtBlocks.length; i += CHUNK_SIZE) {
-      const chunkBlocks = srtBlocks.slice(i, i + CHUNK_SIZE);
-      chunks.push(chunkBlocks.join('\n\n'));
+    
+    try {
+      const { output } = await convertToHinglishPrompt(input);
+      return output || { hinglishSrtContent: '' };
+    } catch (error) {
+      console.error("Error processing chunk:", error);
+      // Return empty content for the failed chunk to avoid breaking the whole process.
+      return { hinglishSrtContent: '' };
     }
-
-    // Process each chunk sequentially to avoid overwhelming the API with parallel requests.
-    const processedChunks: string[] = [];
-    for (const chunk of chunks) {
-      try {
-        const result = await convertToHinglishPrompt({ srtContent: chunk });
-        processedChunks.push(result.output?.hinglishSrtContent || '');
-      } catch (error) {
-        console.error("A chunk failed to process, skipping it.", error);
-        // If a chunk fails, we'll log the error and continue with the next ones.
-        // This makes the process more resilient.
-      }
-    }
-
-    // Stitch the processed Hinglish chunks back together, preserving the
-    // double newline separation between SRT blocks.
-    const hinglishSrtContent = processedChunks.join('\n\n');
-
-    return { hinglishSrtContent };
   }
 );

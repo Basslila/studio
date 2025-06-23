@@ -8,12 +8,14 @@ import { useToast } from '@/hooks/use-toast';
 import { convertHindiToHinglish } from '@/ai/flows/convert-hindi-to-hinglish';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 
 export function SrtConverter() {
   const [file, setFile] = React.useState<File | null>(null);
   const [hindiContent, setHindiContent] = React.useState<string | null>(null);
   const [hinglishContent, setHinglishContent] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [progress, setProgress] = React.useState(0);
   const { toast } = useToast();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -22,6 +24,7 @@ export function SrtConverter() {
     if (selectedFile && selectedFile.name.endsWith('.srt')) {
       setFile(selectedFile);
       setHinglishContent(null);
+      setProgress(0);
       const reader = new FileReader();
       reader.onload = (e) => {
         setHindiContent(e.target?.result as string);
@@ -45,11 +48,40 @@ export function SrtConverter() {
       return;
     }
     setIsLoading(true);
-    setHinglishContent(null);
+    setHinglishContent(''); // Start with empty string to allow appending
+    setProgress(0);
     try {
-      const result = await convertHindiToHinglish({ srtContent: hindiContent });
-      setHinglishContent(result.hinglishSrtContent);
-       toast({
+      const srtBlocks = hindiContent.trim().split(/\n\s*\n/);
+      if (srtBlocks.length === 0 || (srtBlocks.length === 1 && !srtBlocks[0])) {
+        setHinglishContent('');
+        setIsLoading(false);
+        return;
+      }
+      
+      const CHUNK_SIZE = 50;
+      const chunks: string[] = [];
+      for (let i = 0; i < srtBlocks.length; i += CHUNK_SIZE) {
+        const chunkBlocks = srtBlocks.slice(i, i + CHUNK_SIZE);
+        chunks.push(chunkBlocks.join('\n\n'));
+      }
+
+      let finalHinglishContent = '';
+      for (let i = 0; i < chunks.length; i++) {
+        const chunk = chunks[i];
+        const result = await convertHindiToHinglish({ srtContent: chunk });
+        
+        if (finalHinglishContent && result.hinglishSrtContent) {
+          finalHinglishContent += '\n\n';
+        }
+        finalHinglishContent += result.hinglishSrtContent;
+        
+        setHinglishContent(finalHinglishContent);
+
+        const newProgress = ((i + 1) / chunks.length) * 100;
+        setProgress(newProgress);
+      }
+      
+      toast({
         title: "Conversion Successful",
         description: "Your Hinglish SRT file is ready for download.",
       });
@@ -79,6 +111,7 @@ export function SrtConverter() {
     setFile(null);
     setHindiContent(null);
     setHinglishContent(null);
+    setProgress(0);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -153,6 +186,15 @@ export function SrtConverter() {
               )}
             </Button>
           </div>
+          
+          {isLoading && (
+            <div className="pl-14 pr-4">
+              <Progress value={progress} className="w-full" />
+              <p className="text-sm text-center mt-2 text-muted-foreground">
+                Converting... {Math.round(progress)}%
+              </p>
+            </div>
+          )}
 
           {/* Step 3: Download */}
            <div className="flex items-center gap-4">
@@ -163,7 +205,7 @@ export function SrtConverter() {
               <h3 className="font-semibold text-lg">Download File</h3>
               <p className="text-sm text-muted-foreground">Save your new Hinglish SRT file.</p>
             </div>
-            <Button onClick={handleDownload} disabled={!hinglishContent} className="w-[120px] flex-shrink-0">
+            <Button onClick={handleDownload} disabled={!hinglishContent || isLoading} className="w-[120px] flex-shrink-0">
               <Download className="mr-2 h-4 w-4" />
               Download
             </Button>
@@ -187,11 +229,7 @@ export function SrtConverter() {
                 <div>
                   <h4 className="font-semibold text-center mb-2">Output (Hinglish)</h4>
                    <div className="h-72 w-full rounded-md border relative bg-muted/20">
-                    {isLoading ? (
-                      <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                      </div>
-                    ) : hinglishContent ? (
+                    {(isLoading || hinglishContent) ? (
                       <ScrollArea className="h-full w-full">
                         <pre className="p-4 text-sm font-mono whitespace-pre-wrap break-words">
                           {hinglishContent}
@@ -200,6 +238,11 @@ export function SrtConverter() {
                     ) : (
                       <div className="flex h-full items-center justify-center p-4">
                           <p className="text-sm text-center text-muted-foreground">Click 'Convert' to see the result here.</p>
+                      </div>
+                    )}
+                    {isLoading && !hinglishContent && (
+                       <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
                     )}
                   </div>
