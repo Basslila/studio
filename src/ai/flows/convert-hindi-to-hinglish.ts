@@ -43,6 +43,8 @@ Your task is to convert all Hindi text within the SRT file to Hinglish, while ma
 
 **Specific Transliteration Rules:**
 
+*   **Custom Company Name:** This is the most important rule. The word "BASSLILA" is a brand name. If you encounter words that sound like it, including but not limited to "Beesla", "Bssla", "Besslila", or "Basslia", you MUST convert them to "BASSLILA".
+
 *   **Common English/Technical Words:** For words that are common in English or are technical terms (especially music-related), use their standard English spelling. This is a critical rule.
     *   Example: "पियानो" → "Piano" (not "piyaano")
     *   Example: "गिटार" → "Guitar" (not "gitaar")
@@ -64,8 +66,11 @@ Your task is to convert all Hindi text within the SRT file to Hinglish, while ma
     *   "मुझे यह पसंद है" → "Mujhe yeh pasand hai"
     *   "यह एक अच्छा गाना है" → "Yeh ek achha gaana hai"
 
+**Final Output Formatting:**
+*   After applying all the transliteration rules above, the ENTIRE Hinglish text output MUST be in ALL CAPS (UPPERCASE). This is a strict requirement. For example, "Main nahi karunga" should become "MAIN NAHI KARUNGA".
+
 **Input SRT Content:**
-You will now be given the SRT content. Apply these rules to convert it.
+You will now be given the SRT content. Apply all these rules to convert it.
 
 {{{srtContent}}}
   `,
