@@ -16,7 +16,7 @@ const fontHeadline = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: 'Lipika SRT',
+  title: 'BASSLILA SRT CONVERTER',
   description: 'Convert Hindi SRT files to Hinglish with AI.',
 };
 

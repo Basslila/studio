@@ -9,7 +9,7 @@ export default function Home() {
           <div className="inline-flex items-center gap-2 mb-4">
              <Sparkles className="h-8 w-8 text-primary" />
              <h1 className="text-4xl sm:text-5xl font-headline font-bold tracking-tight text-foreground">
-              Lipika SRT
+              BASSLILA SRT CONVERTER
             </h1>
           </div>
           <p className="text-lg text-muted-foreground font-body">
