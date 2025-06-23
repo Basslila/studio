@@ -1,1 +1,5 @@
-// Flows will be imported for their side effects in this file.
+import { config } from 'dotenv';
+config();
+
+import '@/ai/flows/convert-hindi-to-hinglish.ts';
+import '@/ai/flows/handle-unknown-hindi-words.ts';
