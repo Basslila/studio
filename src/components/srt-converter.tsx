@@ -1,11 +1,13 @@
 "use client";
 
 import * as React from 'react';
-import { Upload, Download, Wand2, Loader2, X, FileText } from 'lucide-react';
+import { Download, FileText, Loader2, Upload, Wand2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { convertHindiToHinglish } from '@/ai/flows/convert-hindi-to-hinglish';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 
 export function SrtConverter() {
   const [file, setFile] = React.useState<File | null>(null);
@@ -92,79 +94,120 @@ export function SrtConverter() {
         <CardTitle className="font-headline text-2xl">Start Conversion</CardTitle>
         <CardDescription className="font-body">Follow these three simple steps to convert your file.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <input
-          type="file"
-          accept=".srt"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-        />
-        
-        {/* Step 1: Upload */}
-        <div className="flex items-center gap-4">
-          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-accent flex items-center justify-center text-primary">
-            <span className="font-bold text-lg">1</span>
-          </div>
-          <div className="flex-grow">
-            <h3 className="font-semibold text-lg">Upload File</h3>
-            {!file ? (
-              <p className="text-sm text-muted-foreground">Select your Hindi .srt file to begin.</p>
-            ) : (
-               <div className="mt-2 flex items-center justify-between p-2 rounded-md border bg-secondary/50">
-                  <div className="flex items-center gap-2 truncate">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <span className="text-sm font-medium truncate">{file.name}</span>
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={resetState}>
-                    <X className="h-4 w-4" />
-                  </Button>
-               </div>
+      <CardContent>
+        <div className="space-y-6">
+          <input
+            type="file"
+            accept=".srt"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          
+          {/* Step 1: Upload */}
+          <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-accent flex items-center justify-center text-primary">
+              <span className="font-bold text-lg">1</span>
+            </div>
+            <div className="flex-grow">
+              <h3 className="font-semibold text-lg">Upload File</h3>
+              {!file ? (
+                <p className="text-sm text-muted-foreground">Select your Hindi .srt file to begin.</p>
+              ) : (
+                 <div className="mt-2 flex items-center justify-between p-2 rounded-md border bg-secondary/50">
+                    <div className="flex items-center gap-2 truncate">
+                      <FileText className="h-5 w-5 text-muted-foreground" />
+                      <span className="text-sm font-medium truncate">{file.name}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={resetState}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                 </div>
+              )}
+            </div>
+            {!file && (
+              <Button onClick={triggerFileInput} variant="outline" className="flex-shrink-0">
+                <Upload className="mr-2 h-4 w-4" />
+                Upload
+              </Button>
             )}
           </div>
-          {!file && (
-            <Button onClick={triggerFileInput} variant="outline" className="flex-shrink-0">
-              <Upload className="mr-2 h-4 w-4" />
-              Upload
+
+          {/* Step 2: Convert */}
+           <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-accent flex items-center justify-center text-primary">
+              <span className="font-bold text-lg">2</span>
+            </div>
+            <div className="flex-grow">
+              <h3 className="font-semibold text-lg">Convert to Hinglish</h3>
+              <p className="text-sm text-muted-foreground">Let our AI work its magic.</p>
+            </div>
+            <Button onClick={handleConvert} disabled={!file || isLoading || !!hinglishContent} className="w-[120px] flex-shrink-0">
+              {isLoading ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <>
+                  <Wand2 className="mr-2 h-4 w-4" />
+                  Convert
+                </>
+              )}
             </Button>
-          )}
+          </div>
+
+          {/* Step 3: Download */}
+           <div className="flex items-center gap-4">
+            <div className="flex-shrink-0 h-10 w-10 rounded-full bg-accent flex items-center justify-center text-primary">
+              <span className="font-bold text-lg">3</span>
+            </div>
+            <div className="flex-grow">
+              <h3 className="font-semibold text-lg">Download File</h3>
+              <p className="text-sm text-muted-foreground">Save your new Hinglish SRT file.</p>
+            </div>
+            <Button onClick={handleDownload} disabled={!hinglishContent} className="w-[120px] flex-shrink-0">
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+          </div>
         </div>
 
-        {/* Step 2: Convert */}
-         <div className="flex items-center gap-4">
-          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-accent flex items-center justify-center text-primary">
-            <span className="font-bold text-lg">2</span>
-          </div>
-          <div className="flex-grow">
-            <h3 className="font-semibold text-lg">Convert to Hinglish</h3>
-            <p className="text-sm text-muted-foreground">Let our AI work its magic.</p>
-          </div>
-          <Button onClick={handleConvert} disabled={!file || isLoading || !!hinglishContent} className="w-[120px] flex-shrink-0">
-            {isLoading ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              <>
-                <Wand2 className="mr-2 h-4 w-4" />
-                Convert
-              </>
-            )}
-          </Button>
-        </div>
-
-        {/* Step 3: Download */}
-         <div className="flex items-center gap-4">
-          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-accent flex items-center justify-center text-primary">
-            <span className="font-bold text-lg">3</span>
-          </div>
-          <div className="flex-grow">
-            <h3 className="font-semibold text-lg">Download File</h3>
-            <p className="text-sm text-muted-foreground">Save your new Hinglish SRT file.</p>
-          </div>
-          <Button onClick={handleDownload} disabled={!hinglishContent} className="w-[120px] flex-shrink-0">
-            <Download className="mr-2 h-4 w-4" />
-            Download
-          </Button>
-        </div>
+        {file && (
+          <>
+            <Separator className="my-8" />
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-center font-headline">SRT Content Preview</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-center mb-2">Input (Hindi)</h4>
+                  <ScrollArea className="h-72 w-full rounded-md border bg-muted/20">
+                    <pre className="p-4 text-sm font-mono whitespace-pre-wrap break-words">
+                      {hindiContent}
+                    </pre>
+                  </ScrollArea>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-center mb-2">Output (Hinglish)</h4>
+                   <div className="h-72 w-full rounded-md border relative bg-muted/20">
+                    {isLoading ? (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                    ) : hinglishContent ? (
+                      <ScrollArea className="h-full w-full">
+                        <pre className="p-4 text-sm font-mono whitespace-pre-wrap break-words">
+                          {hinglishContent}
+                        </pre>
+                      </ScrollArea>
+                    ) : (
+                      <div className="flex h-full items-center justify-center p-4">
+                          <p className="text-sm text-center text-muted-foreground">Click 'Convert' to see the result here.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
       <CardFooter className="text-center justify-center">
         <p className="text-xs text-muted-foreground">Powered by Generative AI.</p>
