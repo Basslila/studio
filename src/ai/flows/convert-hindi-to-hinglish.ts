@@ -82,8 +82,39 @@ const convertHindiToHinglishFlow = ai.defineFlow(
     inputSchema: ConvertHindiToHinglishInputSchema,
     outputSchema: ConvertHindiToHinglishOutputSchema,
   },
-  async input => {
-    const {output} = await convertToHinglishPrompt(input);
-    return output!;
+  async ({ srtContent }) => {
+    // Split the SRT content into individual subtitle blocks.
+    // SRT blocks are typically separated by one or more empty lines.
+    const srtBlocks = srtContent.trim().split(/\n\s*\n/);
+
+    // If there's no content, return an empty string.
+    if (srtBlocks.length === 0 || (srtBlocks.length === 1 && !srtBlocks[0])) {
+      return { hinglishSrtContent: '' };
+    }
+
+    // Group blocks into chunks to avoid hitting model context limits
+    // and to allow for parallel processing. A chunk size of 50 is a
+    // safe and efficient number for most models.
+    const CHUNK_SIZE = 50;
+    const chunks: string[] = [];
+    for (let i = 0; i < srtBlocks.length; i += CHUNK_SIZE) {
+      const chunkBlocks = srtBlocks.slice(i, i + CHUNK_SIZE);
+      chunks.push(chunkBlocks.join('\n\n'));
+    }
+
+    // Process each chunk in parallel by calling the conversion prompt.
+    const chunkPromises = chunks.map(chunk =>
+      convertToHinglishPrompt({ srtContent: chunk })
+    );
+
+    const processedChunksResults = await Promise.all(chunkPromises);
+
+    // Stitch the processed Hinglish chunks back together, preserving the
+    // double newline separation between SRT blocks.
+    const hinglishSrtContent = processedChunksResults
+      .map(result => result.output?.hinglishSrtContent || '')
+      .join('\n\n');
+
+    return { hinglishSrtContent };
   }
 );
