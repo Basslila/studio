@@ -32,17 +32,41 @@ const convertToHinglishPrompt = ai.definePrompt({
   name: 'convertToHinglishPrompt',
   input: {schema: ConvertHindiToHinglishInputSchema},
   output: {schema: ConvertHindiToHinglishOutputSchema},
-  prompt: `You are an expert in converting Hindi text to Hinglish (Hindi transliterated into the Roman alphabet), with a specialization in content for a music production channel.
+  prompt: `You are an expert in converting Hindi text to Hinglish (Hindi transliterated into the Roman alphabet), with a specialization in content for a music production channel. Your goal is to produce natural-sounding Hinglish that reflects how native speakers type and communicate online.
 You will receive the content of an SRT file, which contains subtitles in Hindi.
 Your task is to convert all Hindi text within the SRT file to Hinglish, while maintaining the SRT file structure.
 
-Here are some guidelines for transliteration:
-- Preserve the SRT file format: Each subtitle entry consists of a number, a timecode, and the text. You must not change these.
-- Convert only the Hindi text: Leave the numbers and timecodes untouched.
-- For general Hindi phrases, provide a standard Hinglish transliteration. For example, "मैं नहीं करूँगा" should become "Mai Nahi Karunga".
-- **Crucially, for words that are common in English or are technical terms, especially music-related terms, use their standard English spelling, not a direct phonetic transliteration.** For example, the Hindi word "पियानो" should be converted to "Piano", not "piyaano". Similarly, "गिटार" should be "Guitar", and "स्टूडियो" should be "Studio".
+**Overall Guidelines:**
+1.  **Preserve SRT Structure:** Do not change the subtitle numbers or the timecodes. Only transliterate the Hindi text.
+2.  **Natural Transliteration:** The output should be easy to read and sound natural to a Hinglish speaker. Avoid overly literal or phonetic translations that feel robotic.
+3.  **Context is Key:** Pay close attention to the context, especially for a music production channel.
 
-The SRT file content is as follows:
+**Specific Transliteration Rules:**
+
+*   **Common English/Technical Words:** For words that are common in English or are technical terms (especially music-related), use their standard English spelling. This is a critical rule.
+    *   Example: "पियानो" → "Piano" (not "piyaano")
+    *   Example: "गिटार" → "Guitar" (not "gitaar")
+    *   Example: "स्टूडियो" → "Studio" (not "stoodiyo")
+    *   Example: "माइक" → "Mic" or "Mike"
+    *   Example: "कंप्यूटर" → "Computer"
+
+*   **General Hindi Words:** For general conversational Hindi, follow common Hinglish conventions.
+    *   Use "aa" for long 'a' sounds (आ): "आप" → "Aap", "काम" → "Kaam".
+    *   Use "ee" for long 'i' sounds (ई/ी): "नहीं" → "Nahi", "जी" → "Jee".
+    *   Use "oo" for long 'u' sounds (ऊ/ू): "दूर" → "Door", "फूल" → "Phool".
+    *   Represent nasal sounds (बिंदी/चंद्रबिंदु) with 'n' or 'm' as appropriate: "मैं" → "Main", "नहीं" → "Nahi", "अंदर" → "Andar".
+    *   Pay attention to aspiration: 'kh' for ख, 'gh' for घ, 'ch' for च, 'chh' for छ, 'th' for थ, 'dh' for ध, etc.
+
+*   **Common Phrases and Words Examples:**
+    *   "मैं नहीं करूँगा" → "Main nahi karunga"
+    *   "क्या हो रहा है?" → "Kya ho raha hai?"
+    *   "आपका स्वागत है" → "Aapka swagat hai"
+    *   "मुझे यह पसंद है" → "Mujhe yeh pasand hai"
+    *   "यह एक अच्छा गाना है" → "Yeh ek achha gaana hai"
+
+**Input SRT Content:**
+You will now be given the SRT content. Apply these rules to convert it.
+
 {{{srtContent}}}
   `,
 });
