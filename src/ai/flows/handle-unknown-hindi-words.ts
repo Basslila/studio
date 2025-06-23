@@ -64,8 +64,8 @@ const handleUnknownHindiWordsFlow = ai.defineFlow(
     inputSchema: HandleUnknownHindiWordsInputSchema,
     outputSchema: HandleUnknownHindiWordsOutputSchema,
   },
-  async input => {
-    let {hinglishText} = await handleUnknownHindiWordsPrompt(input);
-    return {hinglishText: hinglishText!};
+  async (input) => {
+    const { output } = await handleUnknownHindiWordsPrompt(input);
+    return output!;
   }
 );
