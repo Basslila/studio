@@ -175,7 +175,7 @@ export function SrtConverter() {
               <h3 className="font-semibold text-lg">Convert to Hinglish</h3>
               <p className="text-sm text-muted-foreground">Let our AI work its magic.</p>
             </div>
-            <Button onClick={handleConvert} disabled={!file || isLoading || !!hinglishContent} className="w-[120px] flex-shrink-0">
+            <Button onClick={handleConvert} disabled={!file || isLoading} className="w-[120px] flex-shrink-0">
               {isLoading ? (
                 <Loader2 className="animate-spin" />
               ) : (
