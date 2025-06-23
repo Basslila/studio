@@ -28,38 +28,22 @@ export async function convertHindiToHinglish(input: ConvertHindiToHinglishInput)
   return convertHindiToHinglishFlow(input);
 }
 
-const shouldRetainHindiTool = ai.defineTool({
-  name: 'shouldRetainHindi',
-  description: 'Determine whether the given word should remain in Hindi or be transliterated to Hinglish.',
-  inputSchema: z.object({
-    word: z.string().describe('The Hindi word to evaluate.'),
-  }),
-  outputSchema: z.boolean().describe('True if the word should remain in Hindi, false if it should be transliterated.'),
-}, async (input) => {
-  // In a real application, this would use a more sophisticated method
-  // to determine whether to retain the Hindi word, such as a dictionary lookup
-  // or a machine learning model.
-  // For this example, we will retain words that are shorter than 4 characters.
-  return input.word.length <= 3;
-});
-
 const convertToHinglishPrompt = ai.definePrompt({
   name: 'convertToHinglishPrompt',
   input: {schema: ConvertHindiToHinglishInputSchema},
   output: {schema: ConvertHindiToHinglishOutputSchema},
-  tools: [shouldRetainHindiTool],
-  prompt: `You are an expert in converting Hindi text to Hinglish (Hindi transliterated into the Roman alphabet).
-  You will receive the content of an SRT file, which contains subtitles in Hindi.
-  Your task is to convert the Hindi text within the SRT file to Hinglish, while maintaining the SRT file structure.
+  prompt: `You are an expert in converting Hindi text to Hinglish (Hindi transliterated into the Roman alphabet), with a specialization in content for a music production channel.
+You will receive the content of an SRT file, which contains subtitles in Hindi.
+Your task is to convert all Hindi text within the SRT file to Hinglish, while maintaining the SRT file structure.
 
-  Here are some guidelines:
-  - Preserve the SRT file format: Each subtitle entry consists of a number, a timecode, and the text.
-  - Convert only the Hindi text: Leave the numbers and timecodes untouched.
-  - Use the shouldRetainHindi tool to decide if a word should remain in Hindi, only convert the words that the tool returns false for.
-  - Be accurate with transliteration.
+Here are some guidelines for transliteration:
+- Preserve the SRT file format: Each subtitle entry consists of a number, a timecode, and the text. You must not change these.
+- Convert only the Hindi text: Leave the numbers and timecodes untouched.
+- For general Hindi phrases, provide a standard Hinglish transliteration. For example, "मैं नहीं करूँगा" should become "Mai Nahi Karunga".
+- **Crucially, for words that are common in English or are technical terms, especially music-related terms, use their standard English spelling, not a direct phonetic transliteration.** For example, the Hindi word "पियानो" should be converted to "Piano", not "piyaano". Similarly, "गिटार" should be "Guitar", and "स्टूडियो" should be "Studio".
 
-  The SRT file content is as follows:
-  {{{srtContent}}}
+The SRT file content is as follows:
+{{{srtContent}}}
   `,
 });
 
